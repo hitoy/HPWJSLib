@@ -203,6 +203,7 @@
         function is_filled(){
             var sliders = carouselscroll.children;
             var slidercount = sliders.length;
+            if(slidercount <= 1) return false;
             var lastitem = sliders[slidercount - 1];
             var rect = lastitem.getBoundingClientRect();
             if(direction == 'x')
