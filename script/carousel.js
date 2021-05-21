@@ -234,6 +234,7 @@
             var offset = get_offset(index);
             var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
             carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
+            carouselscroll.style.transitionDelay = '0s';
             if(direction == 'x')
                 carouselscroll.style.transform = 'translateX('+transdis+'px)';
             else
@@ -613,6 +614,7 @@
             var y = ev.targetTouches[0].pageY;
             var translate = parseFloat(carouselscroll.getAttribute('data-translate'));
             carouselscroll.style.transitionDuration = '0s';
+            carouselscroll.style.transitionDelay  = '0s';
             if(direction == 'x'){
                 var movedis = x - pageX;
                 var transdis = translate + movedis;
@@ -626,7 +628,6 @@
             }
             pageX = x;
             pageY = y;
-
         });
         carouselscroll.addEventListener('touchend', function(ev){
             var x = ev.changedTouches[0].pageX;
@@ -638,9 +639,9 @@
             }else{
                 var movedis = y - initpageY;
             }
-            if(movedis < -basedis/2)
+            if(movedis < -basedis/3)
                 slide(currentindex + step);
-            else if(movedis > basedis/2)
+            else if(movedis > basedis/3)
                 slide(currentindex - step);
             else
                 slide(currentindex);
@@ -681,6 +682,6 @@
     //创建Style
     var nestedstyle = w.document.createElement('style');
     nestedstyle.setAttribute('carousel-extension', version);
-    nestedstyle.innerHTML='.carousel-container{position:relative}.carousel-wrap{position:relative;max-width:100%;max-height:100%;overflow:hidden}.carousel-scroll{position:absolute;display:block;width:100%;height:auto;transition-property:transform;transition-timing-function:ease-in-out}.carousel-scroll>*{box-sizing:border-box}.carousel-scroll-x{white-space:nowrap;touch-action:pan-x}.carousel-scroll-x>*{display:inline-block;vertical-align:bottom;white-space:initial}.carousel-scroll-y{touch-action:pan-y}.carousel-scroll-y>*{display:block}.carousel-previousbutton[aria-disabled=true],.carousel-nextbutton[aria-disabled=true]{visibility:hidden}';
+    nestedstyle.innerHTML='.carousel-container{position:relative}.carousel-wrap{position:relative;max-width:100%;max-height:100%;overflow:hidden}.carousel-scroll{position:absolute;display:block;width:100%;height:auto;transition-property:transform;transition-timing-function:ease-in-out}.carousel-scroll>*{box-sizing:border-box}.carousel-scroll-x{white-space:nowrap}.carousel-scroll-x>*{display:inline-block;vertical-align:bottom;white-space:initial}.carousel-scroll-y>*{display:block}.carousel-previousbutton[aria-disabled=true],.carousel-nextbutton[aria-disabled=true]{visibility:hidden}';
     w.document.head.append(nestedstyle);
 })(window);
