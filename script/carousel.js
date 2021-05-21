@@ -1,5 +1,5 @@
 /*
- * Carousel.js 0.0.5
+ * Carousel.js 0.0.6
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 (function(w){
     'use strict';
-    var version = '0.0.5';
+    var version = '0.0.6';
     var readyState = w.document.readyState;
     var carousels;
     //第一次加载时执行初始化函数
@@ -681,6 +681,6 @@
     //创建Style
     var nestedstyle = w.document.createElement('style');
     nestedstyle.setAttribute('carousel-extension', version);
-    nestedstyle.innerHTML='.carousel-container{position:relative}.carousel-wrap{position:relative;max-width:100%;max-height:100%;overflow:hidden}.carousel-scroll{position:absolute;display:block;width:100%;height:auto;transition-property:transform;transition-timing-function:ease-in-out}.carousel-scroll>*{box-sizing:border-box}.carousel-scroll-x{white-space:nowrap}.carousel-scroll-x>*{display:inline-block;vertical-align:bottom;white-space:initial}.carousel-scroll-y>*{display:block}.carousel-previousbutton[aria-disabled=true],.carousel-nextbutton[aria-disabled=true]{visibility:hidden}';
+    nestedstyle.innerHTML='.carousel-container{position:relative}.carousel-wrap{position:relative;max-width:100%;max-height:100%;overflow:hidden}.carousel-scroll{position:absolute;display:block;width:100%;height:auto;transition-property:transform;transition-timing-function:ease-in-out}.carousel-scroll>*{box-sizing:border-box}.carousel-scroll-x{white-space:nowrap;touch-action:pan-x}.carousel-scroll-x>*{display:inline-block;vertical-align:bottom;white-space:initial}.carousel-scroll-y{touch-action:pan-y}.carousel-scroll-y>*{display:block}.carousel-previousbutton[aria-disabled=true],.carousel-nextbutton[aria-disabled=true]{visibility:hidden}';
     w.document.head.append(nestedstyle);
 })(window);
