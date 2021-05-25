@@ -608,7 +608,7 @@
             initpageY = ev.targetTouches[0].pageY;
             pageX = initpageX;
             pageY = initpageY;
-        });
+        }, {passive: true});
         carouselscroll.addEventListener('touchmove', function(ev){
             var x = ev.targetTouches[0].pageX;
             var y = ev.targetTouches[0].pageY;
@@ -628,7 +628,7 @@
             }
             pageX = x;
             pageY = y;
-        });
+        }, {passive: true});
         carouselscroll.addEventListener('touchend', function(ev){
             var x = ev.changedTouches[0].pageX;
             var y = ev.changedTouches[0].pageY;
@@ -645,7 +645,7 @@
                 slide(currentindex - step);
             else
                 slide(currentindex);
-        });
+        }, {passive: true});
 
 
         /*
@@ -668,7 +668,7 @@
                 }
                 ev.preventDefault();
                 ev.stopPropagation();
-            });
+            }, {passive: false});
         }
         
         //初始化数据，延迟执行
