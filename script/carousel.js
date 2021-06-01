@@ -608,6 +608,11 @@
             initpageY = ev.targetTouches[0].pageY;
             pageX = initpageX;
             pageY = initpageY;
+            if(direction == 'x'){
+                carouselwrap.style.touchAction = 'pan-x';
+            }else{
+                carouselwrap.style.touchAction = 'pan-y';
+            }
         }, {passive: true});
         carouselscroll.addEventListener('touchmove', function(ev){
             var x = ev.targetTouches[0].pageX;
@@ -645,6 +650,7 @@
                 slide(currentindex - step);
             else
                 slide(currentindex);
+            carouselwrap.style.touchAction = 'none';
         }, {passive: true});
 
 
