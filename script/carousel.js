@@ -1,5 +1,5 @@
 /*
- * Carousel.js 0.0.6
+ * Carousel.js 0.0.7
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,14 +31,14 @@
  */
 (function(w){
     'use strict';
-    var version = '0.0.6';
+    var version = '0.0.7';
     var readyState = w.document.readyState;
     var carousels;
     //第一次加载时执行初始化函数
-    if(readyState === "interactive"||  readyState === "complete"){
+    if(readyState === "complete"){
         init();
     }else{
-        w.document.addEventListener("DOMContentLoaded", init);
+        w.addEventListener("load", init);
     }
 
     //解析DOM，开始工作
@@ -552,6 +552,7 @@
 
         /*
          * 以下为立即执行代码
+         * 初始化与事件绑定
          */
 
         //绑定下一页和上一页点击事件
@@ -676,13 +677,9 @@
                 ev.stopPropagation();
             }, {passive: false});
         }
-        
-        //初始化数据，延迟执行
-        if(readyState === "complete"){
-             __init();
-        }else{
-            w.addEventListener("load", __init);
-        }
+
+        //初始化
+        __init();
     }
 
     //创建Style
