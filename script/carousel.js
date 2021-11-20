@@ -1,5 +1,5 @@
 /*
- * Carousel.js 0.0.8
+ * Carousel.js 1.0.0
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 (function(w){
     'use strict';
-    var version = '0.0.7';
+    var version = '1.0.0';
     var readyState = w.document.readyState;
     var carousels;
     //第一次加载时执行初始化函数
@@ -77,15 +77,14 @@
             //指示图标
             var indicator = carousel.querySelector('[carousel-indicator]') 
             var activeclass = indicator ? indicator.getAttribute('carousel-indicator-focusclass') || 'carousel-indicator-active' : 'carousel-indicator-active';
-            //上下按钮
+            //切换按钮
             var nextbutton = carousel.querySelector('[carousel-next-button]');
-            var previousbutton = carousel.querySelector('[carousel-previous-button]');
-        
             if(nextbutton){
                 nextbutton.classList.add('carousel-nextbutton');
                 nextbutton.setAttribute('role', 'button');
                 nextbutton.setAttribute('tabindex', '0');
             }
+            var previousbutton = carousel.querySelector('[carousel-previous-button]');
             if(previousbutton){
                 previousbutton.classList.add('carousel-previousbutton');
                 previousbutton.setAttribute('role', 'button');
@@ -211,38 +210,6 @@
             else
                 return rect.bottom - carouseltop >= carouselheight;
         }
-
-        /*
-         * 根据索引和时间移动carouselscroll
-         *  @param index int carouselscroll中子元素索引
-         *  @param duration int 移动时间 毫秒
-         *  @param direction string 方向，可选，默认为x
-         * 把carouselscroll移动到指定的位置
-         */
-        function move(){
-            if(arguments.length == 2){
-                var index = arguments[0];
-                var duration = arguments[1];
-                direction = direction;
-            }else if(arguments.length == 3){
-                var index = arguments[0];
-                var duration = arguments[1];
-                direction = arguments[2];
-            }else{
-                return false;
-            }
-            var offset = get_offset(index);
-            var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
-            carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
-            carouselscroll.style.transitionDelay = '0s';
-            if(direction == 'x')
-                carouselscroll.style.transform = 'translateX('+transdis+'px)';
-            else
-                carouselscroll.style.transform = 'translateY('+transdis+'px)';
-            carouselscroll.setAttribute('data-translate', transdis);
-            currentindex = index;
-        }
-
         
         /*
          * 初始化数据
@@ -277,7 +244,7 @@
             carouselscroll.parentNode.style.height = carouselheight + 'px';
 
             //删除空白文本对象，以保证inline-block不会出现空白
-            carouselscroll.childNodes.forEach(function(node,i){
+            carouselscroll.childNodes.forEach(function(node){
                 if(node.nodeType !== 1){
                     carouselscroll.removeChild(node);
                 }
@@ -296,10 +263,11 @@
             slidercountinview = get_slider_count_in_view();
 
             //计算每次滑动的元素个数
-            if(step === 'auto')
+            if(step === 'auto'){
                 step = slidercountinview;
-            else
+            }else{
                 step = Math.min(step, slidercountinview);
+            }
             
             /*
              * 下面开始根据相关数据操作DOM
@@ -318,21 +286,21 @@
              */
             var positionoffset = 0;
             if(loop & currentindex === 0){
-                 //获取原始幻灯片数据
+                //获取原始幻灯片数据
                 var origin_sliders = carouselscroll.cloneNode(true).children;
 
-                //先往往尾部需要插入的元素，减小效果抖动
+                //先往尾部需要插入的元素，插入个数为可见幻灯片个数
                 for(var i = 0; i <= slidercountinview; i++){
                     var clone = origin_sliders[i].cloneNode(true);
                     carouselscroll.appendChild(clone);
                 }
-
-                //再往头部插入的元素，并设置位移属性
+                //再往头部插入的元素，插入个数为一次移动的个数
                 for(var i = slidercount - 1; i >= slidercount - step; i--){
                     var slider = origin_sliders[i];
                     var clone = slider.cloneNode(true);
                     carouselscroll.insertBefore(clone, carouselscroll.children[0]);
                 }
+
                 //设置看到默认为第一个幻灯片
                 var positionoffset = get_offset(step);
                 if(direction === 'x'){
@@ -349,14 +317,14 @@
             //给所有幻灯片设置宽度和高
             //并给视野中完整的幻灯片设置class
             var min = loop ?  step : 0;
-            var max = loop ? slidercountinview+step : slidercountinview;
+            var max = loop ? slidercountinview + step : slidercountinview;
             var order = 1;
             carouselscroll.childNodes.forEach(function(node, i){
                 if(node.nodeType === 1){
                     node.style.width = node.offsetWidth + 'px';
                     node.style.height = node.offsetHeight + 'px';
                 }
-                if( i >= min && i < max){
+                if(i >= min && i < max){
                     node.classList.add(carouselscrollactiveclass);
                     node.setAttribute('data-order', order);
                     order++;
@@ -386,7 +354,38 @@
         };
 
         /*
-         * 滑动的核心方法
+         * 根据索引和时间移动carouselscroll
+         * @param index int carouselscroll中子元素索引
+         * @param duration int 移动时间 毫秒
+         * @param direction string 方向，可选，默认为x
+         * 把carouselscroll移动到指定的位置
+         */
+        function move(){
+            if(arguments.length == 2){
+                var index = arguments[0];
+                var duration = arguments[1];
+                direction = direction;
+            }else if(arguments.length == 3){
+                var index = arguments[0];
+                var duration = arguments[1];
+                direction = arguments[2];
+            }else{
+                return false;
+            }
+            var offset = get_offset(index);
+            var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
+            carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
+            carouselscroll.style.transitionDelay = '0s';
+            if(direction === 'x')
+                carouselscroll.style.transform = 'translateX('+transdis+'px)';
+            else
+                carouselscroll.style.transform = 'translateY('+transdis+'px)';
+            carouselscroll.setAttribute('data-translate', transdis);
+            currentindex = index;
+        }
+
+        /*
+         * 滑动动画核心方法
          * @param index 幻灯片相对caarouselscroll的索引
          * 同时实现无缝循环和不循环两种效果
          */
@@ -398,61 +397,54 @@
 
             /*
              * 若loop， 则无缝过渡，在动画之前，需要根据当前位置，调整起始位置
-             * 如果当前位置已显示了过渡幻灯片，并
-             * **往前滚动：先跳转到尾部对应位置，然后往前滚动
-             * **往后滚动：先跳转到头部位置，然后往前滚动
+             * 若非loop, 则动画最多只能到头部或者尾部
              */
             if(loop){
                 /*
-                 * 如果当前位置偏移量小于step，则代表至少有一个过渡幻灯片在展示，此时位于头部
-                 * 并且要移动的位置索引小于当前位置索引，则代表是从大往小移动
-                 * 先跳转到尾部
+                 * 幻灯片展示已经到头，且还需要展示上一个幻灯片，则先跳转到尾部对应的幻灯片，然后...
                  */
-                if(currentindex < step && index < currentindex){
+                if(index < currentindex && currentindex < step){
                     move(currentindex + slidercount, 0);
                     index = index + slidercount;
                 }
 
-                /* 如果当前查看的最后一个幻灯片索引大于非过渡最后一个幻灯片的索引，代表此时位于尾部，至少一个过渡幻灯片已被展示
-                 * 并且要移动的位置索引大于当前位置索引，则代表从小往大移动
-                 * 先跳转到头部
+                /*
+                 * 幻灯片已经到尾部，且还需要展示下一个幻灯片，则先跳转到头部对应的幻灯片，然后...
                  */
-                else if(index > currentindex && currentindex + step - 1 > slidercount + step - 1){
+                else if(index > currentindex && currentindex > slidercount){
                     move(currentindex - slidercount, 0);
                     index = index - slidercount;
                 }
             }
-            /*
-             * 若非loop, 则动画最多只能到头部或者尾部
-             */
             else{
-                if(index < 0)
+                if(index < 0){
                     index = 0;
-                else if(index >= slidercount - slidercountinview)
+                }else if(index >= slidercount - slidercountinview){
                     index = slidercount - slidercountinview;
+                }
             }
-
-            //显示指示器
-            if(indicator)
-                carousel_indicator(index);
 
             //以动画方式移动元素
             move(index, duration);
 
-            //同时: 在动画结束之后还原状态
+            //动画结束之后设置状态
             setTimeout(function(){
+                //设置指示器状态
+                if(indicator){
+                    carousel_indicator(index);
+                }
+                //设置翻页状态
                 if(!loop && currentindex >= slidercount - slidercountinview){
                     disable_page_button(nextbutton);
                 }
-                //如果不loop，到头部，则不能网上翻页
                 else if(!loop && currentindex == 0){
                     disable_page_button(previousbutton);
                 }
-                //正常不loop激活2个按钮
                 else if(!loop){
                     enable_page_button(nextbutton);
                     enable_page_button(previousbutton);
                 }
+
                 //给正在展示的幻灯片增加一个class便于控制样式
                 var order = 1;
                 carouselscroll.childNodes.forEach(function(c, i){
@@ -465,6 +457,8 @@
                         c.removeAttribute('data-order');
                     }
                 });
+
+                //动画状态结束
                 in_transition = false; 
             }, duration);
         }
@@ -548,7 +542,6 @@
         this.stop = function(){
             clearInterval(autoplayid);
         }
-
 
         /*
          * 以下为立即执行代码
@@ -645,12 +638,13 @@
             }else{
                 var movedis = y - initpageY;
             }
-            if(movedis < -basedis/3)
+            if(movedis < -basedis/3){
                 slide(currentindex + step);
-            else if(movedis > basedis/3)
+            }else if(movedis > basedis/3){
                 slide(currentindex - step);
-            else
+            }else{
                 slide(currentindex);
+            }
             carouselwrap.style.touchAction = 'none';
         }, {passive: true});
 
