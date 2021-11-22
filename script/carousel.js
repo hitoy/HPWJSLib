@@ -1,5 +1,5 @@
 /*
- * Carousel.js 1.0.0
+ * Carousel.js 1.2.0
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,18 +31,18 @@
  */
 (function(w){
     'use strict';
-    var version = '1.0.0';
+    var version = '1.2.0';
     var readyState = w.document.readyState;
     var carousels;
     //第一次加载时执行初始化函数
     if(readyState === "complete"){
-        init();
+        carouselparse();
     }else{
-        w.addEventListener("load", init);
+        w.addEventListener("load", carouselparse);
     }
 
     //解析DOM，开始工作
-    function init(){
+    function carouselparse(){
         carousels = w.document.querySelectorAll('[carousel-container]');
         carousels.forEach(function(carousel){
             //是否循环滚动
@@ -63,6 +63,7 @@
             //滚动元素的父元素
             var carouselscroll = carousel.querySelector('[carousel-scroll]');
             if(!carouselscroll) return;
+
             //可见幻灯片的属性
             var carouselscrollactiveclass =  carouselscroll.getAttribute('carousel-scroll-activeclass') || 'visible';
 
@@ -73,10 +74,11 @@
                 carouselscroll.classList.add('carousel-scroll-x');
             else
                 carouselscroll.classList.add('carousel-scroll-y');
-            
+
             //指示图标
             var indicator = carousel.querySelector('[carousel-indicator]') 
             var activeclass = indicator ? indicator.getAttribute('carousel-indicator-focusclass') || 'carousel-indicator-active' : 'carousel-indicator-active';
+
             //切换按钮
             var nextbutton = carousel.querySelector('[carousel-next-button]');
             if(nextbutton){
@@ -90,18 +92,15 @@
                 previousbutton.setAttribute('role', 'button');
                 previousbutton.setAttribute('tabindex', '0');
             }
-            
+
             //初始化轮播对象
-            var carousel =  new Carousel(carouselscroll, carouselscrollactiveclass, duration, step, loop, direction, indicator, activeclass, nextbutton, previousbutton, mousewheel);
-            if(autoplay){
-                carousel.autoplay(delay);
-            }
+            var carousel =  new Carousel(carouselscroll, carouselscrollactiveclass, duration, step, loop, direction, indicator, activeclass, nextbutton, previousbutton, mousewheel, autoplay, delay);
         });
     }
 
 
     //轮播构造对象
-    function Carousel(carouselscroll, carouselscrollactiveclass, duration, step, loop,  direction, indicator, activeclass, nextbutton, previousbutton, mousewheel){
+    function Carousel(carouselscroll, carouselscrollactiveclass, duration, step, loop, direction, indicator, activeclass, nextbutton, previousbutton, mousewheel, autoplay, delay){
 
         //替代对象
         var _this = this;
@@ -143,17 +142,18 @@
         var slidercount;
         //能够完整显示的幻灯片的数量
         var slidercountinview;
-        
-        //每次滑动的个数
+
+        //每次滑动的数量
         var step = step;
 
-        //当前正在显示的幻灯片在滚动的子元素里的索引
+        //当前正在显示的幻灯片在滚动的子元素里的索引，包括过渡幻灯片
         var currentindex = 0;
 
         /*
          * 根据方向和索引获取相对于carouselscroll的偏移量
          * @param index int carouselscroll中子元素索引
          * @param direction string 方向，可选，默认为x
+         * @return Float
          */
         function get_offset(){
             if(arguments.length == 1){
@@ -210,7 +210,182 @@
             else
                 return rect.bottom - carouseltop >= carouselheight;
         }
-        
+
+        /*
+         * 判断当前是否可以滑动
+         * 动画中或容器没填满的情况不能滑动
+         * @return boolean
+         */
+        function disabled(){
+            return in_transition && eligible;
+        }
+
+        /*
+         * 显示指示器，对正在显示的高亮显示
+         * @param index int 当前查看的幻灯片索引
+         * @return null
+         */
+        function carousel_indicator(index){
+            var indicators = indicator.querySelectorAll('span');
+            var indicatorcount = indicators.length;
+
+            var remainder = slidercount % step;
+            //求没有loop情况下的index
+            if(loop){
+                if(index < step)
+                    index = index + slidercount - step;
+                else if(index > slidercount + step)
+                    index = index - slidercount + step;
+                else
+                    index = index - step;
+                index = Math.ceil(index/step) % indicatorcount;
+            }else{
+                index = Math.ceil(index/step);
+            }
+
+            indicator.querySelectorAll('span').forEach(function(c,i){
+                if(i == index)
+                    c.classList.add(activeclass);
+                else
+                    c.classList.remove(activeclass);
+            });
+        }
+
+        /*
+         * 根据参数激活前或后翻页按钮
+         * @param button string next|previous按钮
+         */
+        function enable_page_button(button){
+            if((button == 'next' || button == nextbutton) && nextbutton){
+                nextbutton.setAttribute('aria-disabled', 'false');
+            }
+            else if((button == 'previous' || button == previousbutton) && previousbutton){
+                previousbutton.setAttribute('aria-disabled', 'false');
+            }
+        }
+
+        /*
+         * 根据参数冻结前或后翻页按钮
+         * @param button string next|previous按钮
+         */
+        function disable_page_button(button){
+            if((button == 'next' || button == nextbutton) && nextbutton){
+                nextbutton.setAttribute('aria-disabled', 'true');
+            }
+            else if((button == 'previous' || button == previousbutton) && previousbutton){
+                previousbutton.setAttribute('aria-disabled', 'true');
+            }
+        }
+
+        /*
+         * 根据索引和时间移动carouselscroll
+         * @param index int carouselscroll中子元素索引
+         * @param duration int 移动时间 毫秒
+         * @param direction string 方向，可选，默认为x
+         * 把carouselscroll移动到指定的位置
+         */
+        function move(){
+            if(arguments.length == 2){
+                var index = arguments[0];
+                var duration = arguments[1];
+                direction = direction;
+            }else if(arguments.length == 3){
+                var index = arguments[0];
+                var duration = arguments[1];
+                direction = arguments[2];
+            }else{
+                return false;
+            }
+            if(index < 0 || index >= carouselscroll.children.length){
+                return false;
+            }
+            var offset = get_offset(index);
+            var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
+            carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
+            carouselscroll.style.transitionDelay = '0s';
+            if(direction === 'x')
+                carouselscroll.style.transform = 'translateX('+transdis+'px)';
+            else
+                carouselscroll.style.transform = 'translateY('+transdis+'px)';
+            carouselscroll.setAttribute('data-translate', transdis);
+            currentindex = index;
+        }
+
+        /*
+         * 滑动动画核心方法
+         * @param index 幻灯片相对caarouselscroll的索引
+         * 同时实现无缝循环和不循环两种效果
+         */
+        function slide(index){
+
+            //一次只能运行一个动画
+            if(in_transition){
+                return false;
+            }
+
+            //设置动画状态
+            in_transition = true;
+
+            //以动画方式移动元素
+            move(index, duration);
+
+            //动画结束之后设置状态
+            setTimeout(function(){
+
+                //设置指示器状态
+                if(indicator){
+                    carousel_indicator(index);
+                }
+
+                //设置翻页状态
+                if(!loop && currentindex >= slidercount - slidercountinview){
+                    disable_page_button(nextbutton);
+                }
+                else if(!loop && currentindex == 0){
+                    disable_page_button(previousbutton);
+                }
+                else if(!loop){
+                    enable_page_button(nextbutton);
+                    enable_page_button(previousbutton);
+                }
+
+                //给正在展示的幻灯片增加一个class便于控制样式
+                var order = 1;
+                carouselscroll.childNodes.forEach(function(c, i){
+                    if(i >= index && i < index + slidercountinview){
+                        c.classList.add(carouselscrollactiveclass);
+                        c.setAttribute('data-order', order);
+                        order++;
+                    }else{
+                        c.classList.remove(carouselscrollactiveclass);
+                        c.removeAttribute('data-order');
+                    }
+                });
+
+                //动画状态为false
+                in_transition = false; 
+
+                //跳转到合适的位置实现无缝滚动效果
+                if(loop){
+                    //已经展示了头部过渡幻灯片，则跳转到尾部
+                    if(index < step){
+                        move(index + slidercount, 0);
+                    }
+                    //已经展示了尾部的过渡幻灯片，则跳转到头部
+                    else if(index >= slidercount + step){
+                        move(index - slidercount, 0);
+                    }
+                }
+            }, duration);
+        }
+
+        /*
+         * 停止动画
+         */
+        function stop(){
+            clearInterval(autoplayid);
+        }
+
         /*
          * 初始化数据
          * 此函数在onload之后或resize时执行
@@ -268,7 +443,7 @@
             }else{
                 step = Math.min(step, slidercountinview);
             }
-            
+
             /*
              * 下面开始根据相关数据操作DOM
              */
@@ -330,7 +505,7 @@
                     order++;
                 }
             });
-            
+
             //通过最后一个元素计算scroll的高度和宽度并
             //给scroll添加高度和宽度属性
             var lastsliderrect = carouselscroll.lastElementChild.getBoundingClientRect();
@@ -351,197 +526,13 @@
                 carousel_indicator(currentindex);
             }
 
+            //启动自动播放
+            if(autoplay){
+               autoplayid = setInterval(function(){
+                    slide(currentindex + step);
+                }, delay);
+            }
         };
-
-        /*
-         * 根据索引和时间移动carouselscroll
-         * @param index int carouselscroll中子元素索引
-         * @param duration int 移动时间 毫秒
-         * @param direction string 方向，可选，默认为x
-         * 把carouselscroll移动到指定的位置
-         */
-        function move(){
-            if(arguments.length == 2){
-                var index = arguments[0];
-                var duration = arguments[1];
-                direction = direction;
-            }else if(arguments.length == 3){
-                var index = arguments[0];
-                var duration = arguments[1];
-                direction = arguments[2];
-            }else{
-                return false;
-            }
-            var offset = get_offset(index);
-            var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
-            carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
-            carouselscroll.style.transitionDelay = '0s';
-            if(direction === 'x')
-                carouselscroll.style.transform = 'translateX('+transdis+'px)';
-            else
-                carouselscroll.style.transform = 'translateY('+transdis+'px)';
-            carouselscroll.setAttribute('data-translate', transdis);
-            currentindex = index;
-        }
-
-        /*
-         * 滑动动画核心方法
-         * @param index 幻灯片相对caarouselscroll的索引
-         * 同时实现无缝循环和不循环两种效果
-         */
-        function slide(index){
-            if(in_transition){
-                return false;
-            }
-            in_transition = true;
-
-            /*
-             * 若loop， 则无缝过渡，在动画之前，需要根据当前位置，调整起始位置
-             * 若非loop, 则动画最多只能到头部或者尾部
-             */
-            if(loop){
-                /*
-                 * 幻灯片展示已经到头，且还需要展示上一个幻灯片，则先跳转到尾部对应的幻灯片，然后...
-                 */
-                if(index < currentindex && currentindex < step){
-                    move(currentindex + slidercount, 0);
-                    index = index + slidercount;
-                }
-
-                /*
-                 * 幻灯片已经到尾部，且还需要展示下一个幻灯片，则先跳转到头部对应的幻灯片，然后...
-                 */
-                else if(index > currentindex && currentindex > slidercount){
-                    move(currentindex - slidercount, 0);
-                    index = index - slidercount;
-                }
-            }
-            else{
-                if(index < 0){
-                    index = 0;
-                }else if(index >= slidercount - slidercountinview){
-                    index = slidercount - slidercountinview;
-                }
-            }
-
-            //以动画方式移动元素
-            move(index, duration);
-
-            //动画结束之后设置状态
-            setTimeout(function(){
-                //设置指示器状态
-                if(indicator){
-                    carousel_indicator(index);
-                }
-                //设置翻页状态
-                if(!loop && currentindex >= slidercount - slidercountinview){
-                    disable_page_button(nextbutton);
-                }
-                else if(!loop && currentindex == 0){
-                    disable_page_button(previousbutton);
-                }
-                else if(!loop){
-                    enable_page_button(nextbutton);
-                    enable_page_button(previousbutton);
-                }
-
-                //给正在展示的幻灯片增加一个class便于控制样式
-                var order = 1;
-                carouselscroll.childNodes.forEach(function(c, i){
-                    if(i >= index && i < index + slidercountinview){
-                        c.classList.add(carouselscrollactiveclass);
-                        c.setAttribute('data-order', order);
-                        order++;
-                    }else{
-                        c.classList.remove(carouselscrollactiveclass);
-                        c.removeAttribute('data-order');
-                    }
-                });
-
-                //动画状态结束
-                in_transition = false; 
-            }, duration);
-        }
-
-        /*
-         * 显示指示器，对正在显示的高亮显示
-         * @param index int 当前查看的幻灯片索引
-         * @return null
-         */
-        function carousel_indicator(index){
-            var indicators = indicator.querySelectorAll('span');
-            var indicatorcount = indicators.length;
-
-            var remainder = slidercount % step;
-            //求没有loop情况下的index
-            if(loop){
-                if(index < step)
-                    index = index + slidercount - step;
-                else if(index > slidercount + step)
-                    index = index - slidercount + step;
-                else
-                    index = index - step;
-                index = Math.ceil(index/step) % indicatorcount;
-            }else{
-                index = Math.ceil(index/step);
-            }
-
-            indicator.querySelectorAll('span').forEach(function(c,i){
-                if(i == index)
-                    c.classList.add(activeclass);
-                else
-                    c.classList.remove(activeclass);
-            });
-        }
-
-        /*
-         * 根据参数激活前或后翻页按钮
-         * @param button string next|previous按钮
-         */
-        function enable_page_button(button){
-            if((button == 'next' || button == nextbutton) && nextbutton){
-                nextbutton.setAttribute('aria-disabled', 'false');
-            }
-            else if((button == 'previous' || button == previousbutton) && previousbutton){
-                previousbutton.setAttribute('aria-disabled', 'false');
-            }
-        }
-        
-        /*
-         * 根据参数冻结前或后翻页按钮
-         * @param button string next|previous按钮
-         */
-         function disable_page_button(button){
-            if((button == 'next' || button == nextbutton) && nextbutton){
-                nextbutton.setAttribute('aria-disabled', 'true');
-            }
-            else if((button == 'previous' || button == previousbutton) && previousbutton){
-                previousbutton.setAttribute('aria-disabled', 'true');
-            }
-        }
-
-        /*
-         * 判断当前是否可以滑动
-         * @return boolean
-         */
-        function disabled(){
-            return in_transition && eligible;
-        }
-
-        /*
-         * 以下为对外暴露的接口
-         */
-        
-        //自动滑动
-        this.autoplay = function(delay){
-            autoplayid = setInterval(function(){
-                slide(currentindex + step);
-            }, delay);
-        }
-        //停止动画
-        this.stop = function(){
-            clearInterval(autoplayid);
-        }
 
         /*
          * 以下为立即执行代码
@@ -553,7 +544,7 @@
             //下一页按钮默认冻结
             nextbutton.setAttribute('aria-disabled', 'true');
             nextbutton.addEventListener('click', function(e){
-                _this.stop();
+                stop();
                 if(disabled() || nextbutton.getAttribute('aria-disabled') == 'true') return false;
                 slide(currentindex + step);
             });
@@ -562,7 +553,7 @@
             //上一页按钮默认冻结
             previousbutton.setAttribute('aria-disabled', 'true');
             previousbutton.addEventListener('click', function(e){
-                _this.stop();
+                stop();
                 if(disabled() || previousbutton.getAttribute('aria-disabled') == 'true') return false;
                 slide(currentindex - step);
             });
@@ -571,7 +562,7 @@
         //手动点击指示器事件
         if(indicator){
             indicator.addEventListener('click', function(e){
-                _this.stop();
+                stop();
                 var target = e.target || window.event.srcElement;
                 if(disabled() || target.nodeName != 'SPAN') return false;
                 var index = (Array.from(indicator.children).indexOf(target));
@@ -582,6 +573,29 @@
                 }
                 slide(index);
             });
+        }
+
+        /*
+         * 鼠标滚动控制滑动
+         */
+        if(mousewheel){
+            var sliderslength = carouselscroll.children.length;
+            carouselscroll.addEventListener('wheel', function(ev){
+                stop();
+                if(event.deltaY > 0){
+                    if(!loop && currentindex == sliderslength - 1 && !disabled()) return false;
+                    if(!disabled()){
+                        slide(currentindex + step);
+                    }
+                }else if(event.deltaY < 0){
+                    if(!loop && currentindex == 0 && !disabled()) return false;
+                    if(!disabled()){
+                        slide(currentindex - step);
+                    }
+                }
+                ev.preventDefault();
+                ev.stopPropagation();
+            }, {passive: false});
         }
 
         /*
@@ -597,16 +611,11 @@
 
         //绑定拖拽事件
         carouselscroll.addEventListener('touchstart', function(ev){
-            _this.stop();
+            stop();
             initpageX = ev.targetTouches[0].pageX;
             initpageY = ev.targetTouches[0].pageY;
             pageX = initpageX;
             pageY = initpageY;
-            if(direction == 'x'){
-                carouselwrap.style.touchAction = 'pan-x';
-            }else{
-                carouselwrap.style.touchAction = 'pan-y';
-            }
         }, {passive: true});
         carouselscroll.addEventListener('touchmove', function(ev){
             var x = ev.targetTouches[0].pageX;
@@ -645,32 +654,7 @@
             }else{
                 slide(currentindex);
             }
-            carouselwrap.style.touchAction = 'none';
         }, {passive: true});
-
-
-        /*
-         * 鼠标滚动控制滑动
-         */
-        if(mousewheel){
-            var sliderslength = carouselscroll.children.length;
-            carouselscroll.addEventListener('wheel', function(ev){
-                _this.stop();
-                if(event.deltaY > 0){
-                    if(!loop && currentindex == sliderslength - 1 && !disabled()) return false;
-                    if(!disabled()){
-                        slide(currentindex + step);
-                    }
-                }else if(event.deltaY < 0){
-                    if(!loop && currentindex == 0 && !disabled()) return false;
-                    if(!disabled()){
-                        slide(currentindex - step);
-                    }
-                }
-                ev.preventDefault();
-                ev.stopPropagation();
-            }, {passive: false});
-        }
 
         //初始化
         __init();
