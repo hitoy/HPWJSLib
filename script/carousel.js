@@ -563,7 +563,7 @@
         if(indicator){
             indicator.addEventListener('click', function(e){
                 stop();
-                var target = e.target || window.event.srcElement;
+                var target = e.target || w.event.srcElement;
                 if(disabled() || target.nodeName != 'SPAN') return false;
                 var index = (Array.from(indicator.children).indexOf(target));
                 if(loop){
