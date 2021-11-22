@@ -349,10 +349,27 @@
                     enable_page_button(previousbutton);
                 }
 
+                //动画状态为false
+                in_transition = false; 
+
+                //跳转到合适的位置实现无缝滚动效果
+                if(loop){
+                    //已经展示了头部过渡幻灯片，则跳转到尾部
+                    if(index < step){
+                        index = index + slidercount;
+                        move(index, 0);
+                    }
+                    //已经展示了尾部的过渡幻灯片，则跳转到头部
+                    else if(index >= slidercount + step){
+                        index = index - slidercount;
+                        move(index, 0);
+                    }
+                }
+
                 //给正在展示的幻灯片增加一个class便于控制样式
                 var order = 1;
                 carouselscroll.childNodes.forEach(function(c, i){
-                    if(i >= index && i < index + slidercountinview){
+                    if(i>= index && i < index + slidercountinview){
                         c.classList.add(carouselscrollactiveclass);
                         c.setAttribute('data-order', order);
                         order++;
@@ -361,21 +378,6 @@
                         c.removeAttribute('data-order');
                     }
                 });
-
-                //动画状态为false
-                in_transition = false; 
-
-                //跳转到合适的位置实现无缝滚动效果
-                if(loop){
-                    //已经展示了头部过渡幻灯片，则跳转到尾部
-                    if(index < step){
-                        move(index + slidercount, 0);
-                    }
-                    //已经展示了尾部的过渡幻灯片，则跳转到头部
-                    else if(index >= slidercount + step){
-                        move(index - slidercount, 0);
-                    }
-                }
             }, duration);
         }
 
