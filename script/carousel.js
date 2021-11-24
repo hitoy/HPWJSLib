@@ -530,7 +530,7 @@
 
             //启动自动播放
             if(autoplay){
-               autoplayid = setInterval(function(){
+                autoplayid = setInterval(function(){
                     slide(currentindex + step);
                 }, delay);
             }
