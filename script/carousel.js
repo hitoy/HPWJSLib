@@ -1,5 +1,5 @@
 /*
- * Carousel.js 1.2.0
+ * Carousel.js 1.2.1
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 (function(w){
     'use strict';
-    var version = '1.2.0';
+    var version = '1.2.1';
     var readyState = w.document.readyState;
     var carousels;
     //第一次加载时执行初始化函数
@@ -109,7 +109,7 @@
         var in_transition = false;
 
         //是否可以动画
-        var eligible = true;
+        var enable = true;
 
         //自动播放ID
         var autoplayid;
@@ -217,7 +217,7 @@
          * @return boolean
          */
         function disabled(){
-            return in_transition && eligible;
+            return in_transition && enable;
         }
 
         /*
@@ -429,7 +429,7 @@
 
             //scroll容器必须被填满，否则不应有滑动功能
             if(!is_filled()){
-                eligible = false;
+                enable = false;
                 return false;
             }
 
@@ -464,7 +464,7 @@
             var positionoffset = 0;
             if(loop & currentindex === 0){
                 //获取原始幻灯片数据
-                var origin_sliders = carouselscroll.cloneNode(true).children;
+                var origin_sliders = carouselscroll.children;
 
                 //先往尾部需要插入的元素，插入个数为可见幻灯片个数
                 for(var i = 0; i <= slidercountinview; i++){
