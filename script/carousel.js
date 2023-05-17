@@ -643,7 +643,7 @@
         }
         [carousel-scroll].carousel-scroll-x > * {
             display: inline-block;
-            vertical-align: bottom;
+            vertical-align: top;
             white-space: initial;
         }
         [carousel-scroll].carousel-scroll-y > * {
