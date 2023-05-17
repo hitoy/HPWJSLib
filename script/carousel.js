@@ -252,24 +252,6 @@
         }
 
 
-        /*
-         * 观察轮播组件是否可见
-         */
-        function attachObserver(){
-            var carouselwrapobserver = new IntersectionObserver(function(entries){
-                entries.forEach(function(entry){
-                    if(entry.target == carouselwrap){
-                        carouselthreshold = entry.intersectionRatio;
-                    }
-                });
-            }, {
-                rootMargin: '0px',
-                threshold: [0, 0.25, 0.5, 0.75, 1]
-            });
-            carouselwrapobserver.observe(carouselwrap);
-        }
-
-
          /*
          * 移动端拖拽移动事件
          */
@@ -509,9 +491,6 @@
                 });
             }
 
-            //5. 附加观察事件
-            attachObserver();
-
             //5. 附加拖拽事件
             attachDragHandle();
 
@@ -519,9 +498,13 @@
             attachWheelHandle();
         };
 
+        //初始化
+        __init();
+
 
         /*
          * 自动播放轮播动画
+         * 对外暴漏
          */
         this.play = function(){
             if(slidernum == 0 || slidernum == slidernuminview) return false;
@@ -547,15 +530,40 @@
             });
         }
 
-        //初始化
-        __init();
-    }
+        //设置对象可视阈值
+        this.setThreshold = function(threshold){
+            carouselthreshold = threshold;
+        }
 
+        //对外暴漏接口
+        this.carouselwrap = carouselwrap;
+        this.carouselwrap.guid = Math.random().toString(36).substr(2);
+    }
 
     //解析DOM，开始工作
     function carouselParser(){
-        var carousels = w.document.querySelectorAll('[carousel-container]');
-        carousels.forEach(function(el){
+
+        //页面中所有的轮播对象
+        var carousels = {};
+
+        //创建一个全局交叉观察器以观察轮播DOM在视口的位置变化情况
+        if(w.IntersectionObserver){
+            var carouselwrapobserver = new IntersectionObserver(function(entries){
+                entries.forEach(function(entry){
+                    var id = entry.target.guid;
+                    var carousel = carousels[id];
+                    carousel.setThreshold(entry.intersectionRatio);
+                });
+            }, {
+                rootMargin: '0px',
+                threshold: [0, 0.25, 0.5, 0.75, 1]
+            });
+        }
+
+        //查询页面中所有的轮播要求，并解析
+        var items = w.document.querySelectorAll('[carousel-container]');
+
+        items.forEach(function(el){
             //是否循环滚动
             var loop = el.hasAttribute('carousel-loop');
             //是否自动滚动
@@ -606,9 +614,15 @@
             //初始化轮播对象
             var carousel =  new Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass);
             if(autoplay) carousel.play();
-            
+
+            //观察所有轮播对象DOM包裹器
+            if(carouselwrapobserver){
+                carouselwrapobserver.observe(carousel.carouselwrap);
+                carousels[carousel.carouselwrap.guid] = carousel;
+            }
         });
     }
+
 
     //创建全局样式
     function attachGlobaStyles(){
