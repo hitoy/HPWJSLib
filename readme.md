@@ -7,7 +7,7 @@
    * carousel-container: 轮播容器，包含所有的轮播组件
    * carousel-scroll: 轮播滚动器，包含所有的用于轮播的幻灯片
    * carousel-indicator: (可选)轮播指示器，用于显示当前播放的幻灯片索引
-   * carousel-next-button和carousel-previous-button: (可选)翻页按钮，用于切换播放的幻灯片
+   * carousel-next-button和carousel-prev-button: (可选)翻页按钮，用于切换播放的幻灯片
 * 编辑好HTML和CSS之后，对相应的标签添加属性以指定轮播库组件，一个demo如下:
 ```
 <div class="container" carousel-container>
@@ -19,7 +19,7 @@
     </ul>
     <div class="indicator" carousel-indicator></div>
     <span carousel-next-button></span>
-    <span carousel-previous-button></span>
+    <span carousel-prev-button></span>
 </div>
 ```
 * carousel.js还支持更多自定义选项，可分别在不同的域内指定：
@@ -33,10 +33,10 @@
       * carousel-direction 需要指定值，滚动方向，x轴或y轴，默认x
 
    * carousel-scroll:
-      * carousel-scroll-activeclass 可见的幻灯片类名，默认visible
+      * carousel-slider-activeclass 可见的幻灯片类名，默认carousel-visible-slider
 
    * carousel-indicator:
-      * carousel-indicator-focusclass 焦点指示器类名，默认carousel-indicator-active
+      * carousel-indicator-activeclass 焦点指示器类名，默认carousel-active-indicator
 
 ## 注意
 * carousel.js支持不同宽度的幻灯片切换，**carousel-scroll下的幻灯片应为inline-block**, **carousel-scroll应该添加overflow:hidden属性**
