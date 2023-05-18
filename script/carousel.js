@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.0.0
+ * Carousel.js 2.0.1
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.0.0';
+    var version = '2.0.1';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -616,7 +616,7 @@
             if(autoplay) carousel.play();
 
             //观察所有轮播对象DOM包裹器
-            if(carouselwrapobserver){
+            if(carouselwrapobserver && carousel.carouselwrap){
                 carouselwrapobserver.observe(carousel.carouselwrap);
                 carousels[carousel.carouselwrap.guid] = carousel;
             }
