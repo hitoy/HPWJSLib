@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.0.1
+ * Carousel.js 2.0.2
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.0.1';
+    var version = '2.0.2';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -519,15 +519,15 @@
                 carouselwrap.parentNode.addEventListener(ev, function(){
                     clearInterval(autoplayid);
                 });
-            });
-            //附加鼠标移出和tou'chend播放事件
+            }, {passive: true});
+            //附加鼠标移出和touchend播放事件
             ['mouseleave','touchend'].forEach(function(ev){
                 carouselwrap.parentNode.addEventListener(ev, function(){
                     autoplayid = setInterval(function(){
                         slide(currentindex + step);
                     }, delay);
                 });
-            });
+            }, {passive: true});
         }
 
         //设置对象可视阈值
