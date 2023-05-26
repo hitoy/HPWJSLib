@@ -192,17 +192,30 @@
             //设置动画状态
             in_transition = true;
 
-            //非loop模式下，index大于幻灯片个数则跳到开头
-            if(!loop && index >= slidernum){
-                index = 0;
-            }
-            //非loop模式下，index小于0则跳转到结尾
-            else if(!loop && index < 0){
-                index = slidernum - 1;
-            }
-            //非loop模式下，要保证最后一版不能留空
-            else if(!loop && index > slidernum - slidernuminview){
-                index = slidernum - slidernuminview;
+            //非loop模式下的跳转，要保证两点：
+            //1，autoplay模式下能够自动跳转到开头或末尾
+            //2，末尾必须保证不能留有空白
+            if(!loop){
+                var maxendindex = slidernum - slidernuminview;
+                //向右移动的情况
+                if(index > currentindex){
+                    //到尾下一个，跳到头部
+                    if(index == slidernum){
+                        index = 0;
+                    }
+                    //保证尾部不留空白
+                    if(index > maxendindex){
+                        index = maxendindex;
+                    }
+                }
+                //向左移动的情况
+                else{
+                    if(currentindex > 0 && index < 0)
+                        index = 0;
+                    else if(index < 0){
+                        index = maxendindex;
+                    }
+                }
             }
 
             //以动画方式移动元素
@@ -241,20 +254,18 @@
                 if(indicator) activateIndicator(index);
 
                 //设置翻页状态
+                enablePageButton(nextbutton);
+                enablePageButton(previousbutton);
                 if(!loop && currentindex >= slidernum - slidernuminview){
                     disablePageButton(nextbutton);
                 }
                 else if(!loop && currentindex == 0){
                     disablePageButton(previousbutton);
                 }
-                else if(!loop){
-                    enablePageButton(nextbutton);
-                    enablePageButton(previousbutton);
-                }
 
                 //动画状态为false
                 in_transition = false; 
-            }, duration);
+            }, duration + 5);
         }
 
 
@@ -310,12 +321,7 @@
                 }else{
                     var movedis = y - initpageY;
                 }
-                if(!loop && currentindex == 0 && movedis >= 0){
-                    slide(0);
-                }else if(!loop && currentindex == slidernum - step && movedis <= 0){
-                    slide(slidernum - step);
-                }
-                else if(movedis < - basedis / 3){
+               if(movedis < - basedis / 3){
                     slide(currentindex + step);
                 }else if(movedis > basedis / 3){
                     slide(currentindex - step);
@@ -474,10 +480,6 @@
                         //如果loop，则需要跳过前面添加的过渡幻灯片
                         if(loop){
                             index = index + step;
-                        }
-                        //如果不loop，则必须保证最后一版不能有空
-                        else if(!loop && index > slidernum - slidernuminview){
-                            index = slidernum - slidernuminview;
                         }
                         slide(index);
                     }
