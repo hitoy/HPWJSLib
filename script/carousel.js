@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.0.3
+ * Carousel.js 2.1.0
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.0.3';
+    var version = '2.1.0';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -192,11 +192,17 @@
             //设置动画状态
             in_transition = true;
 
-            //不能跳出当前幻灯片索引
-            if(index >= carouselscroll.children.length){
+            //非loop模式下，index大于幻灯片个数则跳到开头
+            if(!loop && index >= slidernum){
                 index = 0;
-            }else if(index < 0){
-                index = carouselscroll.children.length - 1;
+            }
+            //非loop模式下，index小于0则跳转到结尾
+            else if(!loop && index < 0){
+                index = slidernum - 1;
+            }
+            //非loop模式下，要保证最后一版不能留空
+            else if(!loop && index > slidernum - slidernuminview){
+                index = slidernum - slidernuminview;
             }
 
             //以动画方式移动元素
@@ -465,8 +471,13 @@
                     var target = e.target || w.event.srcElement;
                     if(target.closest('span')){
                         var index = (Array.from(indicator.children).indexOf(target.closest('span')));
+                        //如果loop，则需要跳过前面添加的过渡幻灯片
                         if(loop){
                             index = index + step;
+                        }
+                        //如果不loop，则必须保证最后一版不能有空
+                        else if(!loop && index > slidernum - slidernuminview){
+                            index = slidernum - slidernuminview;
                         }
                         slide(index);
                     }
