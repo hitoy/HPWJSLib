@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.1.0
+ * Carousel.js 2.2.0
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -20,7 +20,7 @@
  * 其他可选展示样式
  * 为轮播容器添加不同属性，即可使用自定义功能
  * carousel-loop 无缝循环滚动
- * carousel-autoplay 自动滚动
+ * carousel-autoplay 自动滚动，可接方向 end或start, end表示从索引小往索引大方向移动，start相反
  * carousel-delay 自动滚动间隔，单位毫秒，默认6000毫秒
  * carousel-duration 每次滚动时间，单位毫秒，默认600毫秒
  * carousel-step 每次滚动的个数，默认为窗口可见的完整对象个数
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.1.0';
+    var version = '2.2.0';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -192,32 +192,6 @@
             //设置动画状态
             in_transition = true;
 
-            //非loop模式下的跳转，要保证两点：
-            //1，autoplay模式下能够自动跳转到开头或末尾
-            //2，末尾必须保证不能留有空白
-            if(!loop){
-                var maxendindex = slidernum - slidernuminview;
-                //向右移动的情况
-                if(index > currentindex){
-                    //到尾下一个，跳到头部
-                    if(index == slidernum){
-                        index = 0;
-                    }
-                    //保证尾部不留空白
-                    if(index > maxendindex){
-                        index = maxendindex;
-                    }
-                }
-                //向左移动的情况
-                else{
-                    if(currentindex > 0 && index < 0)
-                        index = 0;
-                    else if(index < 0){
-                        index = maxendindex;
-                    }
-                }
-            }
-
             //以动画方式移动元素
             move(index, duration);
 
@@ -314,20 +288,37 @@
             carouselscroll.addEventListener('touchend', function(ev){
                 var x = ev.changedTouches[0].pageX;
                 var y = ev.changedTouches[0].pageY;
-                var basedis = getSliderDistance(step) - getSliderDistance(0);
+                var next = currentindex;
 
                 if(direction == 'x'){
                     var movedis = x - initpageX;
                 }else{
                     var movedis = y - initpageY;
                 }
-               if(movedis < - basedis / 3){
-                    slide(currentindex + step);
-                }else if(movedis > basedis / 3){
-                    slide(currentindex - step);
-                }else{
-                    slide(currentindex);
+
+                if(movedis < 0){
+                    for(var i = next; i < carouselscroll.children.length; i++){
+                        if(getSliderDistance(i) > 0){
+                            if(Math.abs(getSliderDistance(i - 1)) * 3 > carouselscroll.children[i - 1].offsetWidth){
+                                next = i;
+                            }
+                            break;
+                        }
+                    }
                 }
+                if(movedis > 0){
+                    for(var i = next; i >= 0; i--){
+                        if(getSliderDistance(i) < 0 && (carouselscroll.children[i].offsetWidth + getSliderDistance(i)) * 3 > carouselscroll.children[i].offsetWidth){
+                                next = i;
+                            break;
+                        }
+                    }
+                }
+
+                //非loop下，必须保证最后没有空白
+                if(!loop && next > slidernum - slidernuminview) next = slidernum - slidernuminview;
+
+                slide(next);
             }, {passive: true});
         }
 
@@ -477,10 +468,11 @@
                     var target = e.target || w.event.srcElement;
                     if(target.closest('span')){
                         var index = (Array.from(indicator.children).indexOf(target.closest('span')));
-                        //如果loop，则需要跳过前面添加的过渡幻灯片
-                        if(loop){
-                            index = index + step;
-                        }
+                        //非loop下，必须保证最后没有留有空白
+                        if(!loop && index > slidernum - slidernuminview) index = slidernum - slidernuminview;
+                        //loop下，则需要跳过前面添加的过渡幻灯片
+                        else if(loop) index = index + step;
+
                         slide(index);
                     }
                 });
@@ -493,14 +485,26 @@
                 //下一页按钮默认冻结
                 nextbutton.addEventListener('click', function(e){
                     if(nextbutton.getAttribute('aria-disabled') == 'true') return false;
-                    slide(currentindex + step);
+                    var next = currentindex + step;
+                    //非loop下，必须保证最后没有留有空白
+                    if(!loop && next > slidernum - slidernuminview && next < slidernum) next = slidernum - slidernuminview;
+                    //非loop下，保证能跳转到头部
+                    else if(!loop && next == slidernum) next = 0;
+
+                    slide(next);
                 });
             }
             if(previousbutton){
                 //上一页按钮默认冻结
                 previousbutton.addEventListener('click', function(e){
                     if(previousbutton.getAttribute('aria-disabled') == 'true') return false;
-                    slide(currentindex - step);
+                    var next = currentindex - step;
+                    //非loop下，必须保证第一个幻灯片必须显示
+                    if(!loop && next < 0 && next > - step)  next = 0;
+                    //非loop下，必须保证能跳转到尾部
+                    else if(!loop && next == - step)  next = slidernum - slidernuminview;
+
+                    slide(next);
                 });
             }
 
@@ -517,14 +521,30 @@
 
         /*
          * 自动播放轮播动画
+         * orientation 为start或者end, end表示往索引大的方向移动，start相反
          * 对外暴漏
          */
-        this.play = function(){
+        this.play = function(orientation){
             if(slidernum == 0 || slidernum == slidernuminview) return false;
 
             var start = function(){
                 autoplayid = setTimeout(function(){
-                    slide(currentindex + step);
+                    var next = 0;
+                    if(orientation == 'end'){
+                        next = currentindex + step;
+                        //非loop下，必须保证最后没有留有空白
+                        if(!loop && next > slidernum - slidernuminview && next < slidernum) next = slidernum - slidernuminview;
+                        //非loop下，保证能跳转到头部
+                        else if(!loop && next == slidernum) next = 0;
+                    }else if(orientation == 'start'){
+                        next = currentindex - step;
+                        //非loop下，必须保证第一个幻灯片必须显示
+                        if(!loop && next < 0 && next > - step)  next = 0;
+                        //非loop下，必须保证能跳转到尾部
+                        else if(!loop && next == - step)  next = slidernum - slidernuminview;
+                    }
+                    slide(next);
+
                     start();
                 }, delay);
             };
@@ -586,8 +606,9 @@
         items.forEach(function(el){
             //是否循环滚动
             var loop = el.hasAttribute('carousel-loop');
-            //是否自动滚动
-            var autoplay = el.hasAttribute('carousel-autoplay');
+            //是否自动滚动，和滚动的方向
+            var autoplay = el.hasAttribute('carousel-autoplay') ? (el.getAttribute('carousel-autoplay') ? el.getAttribute('carousel-autoplay') : 'end') : false;
+
             //每次滑动延迟时间
             var delay = el.hasAttribute('carousel-delay') ? parseInt(el.getAttribute('carousel-delay')) : 6000;
             //每次动画持续时间
@@ -633,7 +654,7 @@
 
             //初始化轮播对象
             var carousel =  new Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass);
-            if(autoplay) carousel.play();
+            if(autoplay) carousel.play(autoplay);
 
             //观察所有轮播对象DOM包裹器
             if(carouselwrapobserver && carousel.carouselwrap){
