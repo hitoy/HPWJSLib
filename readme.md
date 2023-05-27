@@ -25,7 +25,7 @@
 * carousel.js还支持更多自定义选项，可分别在不同的域内指定：
    * carousel-container: 
       * carousel-loop 无缝循环滚动
-      * carousel-autoplay 自动滚动
+      * carousel-autoplay 自动滚动，可指定方向start或end，默认为end,往右滚动
       * carousel-mousewheel 是否绑定鼠标滚轮切换幻灯片显示
       * carousel-delay 需要指定值，自动滚动间隔，单位毫秒，默认6000毫秒
       * carousel-duration 需要指定值，每次滚动时间，单位毫秒，默认600毫秒
