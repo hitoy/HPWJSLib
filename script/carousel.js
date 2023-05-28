@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.2.0
+ * Carousel.js 2.2.1
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.2.0';
+    var version = '2.2.1';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -325,18 +325,25 @@
 
         //鼠标滚轮事件
         function attachWheelHandle(){
-            if(mousewheel){
-                carouselwrap.addEventListener('wheel', function(ev){
-                    if(ev.deltaY > 0 ){
-                        if(!loop && currentindex == slidernum - step || carouselthreshold < 0.75) return false;
-                        slide(currentindex + step);
-                    }else if(ev.deltaY < 0){
-                        if(!loop && currentindex == 0 || carouselthreshold < 0.75) return false;
-                        slide(currentindex - step);
-                    }
-                    ev.preventDefault();
-                }, {passive: false});
-            }
+            var starttime = 0;
+            var endtime = 0;
+            carouselwrap.addEventListener('wheel', function(ev){
+                starttime = new Date().getTime();
+                if(ev.deltaY > 0 && starttime - endtime > duration){
+                    if(!loop && currentindex == slidernum - step || carouselthreshold < 0.75) return false;
+                    slide(currentindex + step);
+                    setTimeout(function(){
+                        endtime = new Date().getTime();
+                    }, duration);
+                }else if(ev.deltaY < 0 && starttime - endtime > duration){
+                    if(!loop && currentindex == 0 || carouselthreshold < 0.75) return false;
+                    slide(currentindex - step);
+                    setTimeout(function(){
+                        endtime = new Date().getTime();
+                    }, duration);
+                }
+                ev.preventDefault();
+            }, {passive: false});
         }
 
 
@@ -512,7 +519,8 @@
             attachDragHandle();
 
             //6. 鼠标滚动控制
-            attachWheelHandle();
+            if(mousewheel)
+                attachWheelHandle();
         };
 
         //初始化
