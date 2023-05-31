@@ -67,7 +67,7 @@
          */
         function getSliderDistance(index){
             var carousel = carouselscroll.children;
-            if(index > carousel.length || index < 0) return false;
+            if(index >= carousel.length || index < 0) return false;
 
             var slider = carousel[index];
             var rect = slider.getBoundingClientRect();
@@ -164,9 +164,9 @@
             carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
             carouselscroll.style.transitionDelay = '0s';
             if(direction === 'x'){
-                carouselscroll.style.transform = 'translateX('+transdis+'px)';
+                carouselscroll.style.transform = 'translate3d('+transdis+'px,0,0)';
             }else{
-                carouselscroll.style.transform = 'translateY('+transdis+'px)';
+                carouselscroll.style.transform = 'translate3d(0,'+transdis+'px,0)';
             }
             carouselscroll.setAttribute('data-translate', transdis);
         }
