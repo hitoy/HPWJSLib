@@ -529,32 +529,36 @@
          * 对外暴漏
          */
         this.play = function(orientation){
-            var autoplayid;
+            var autoplayid, playing = false;
             if(slidernum == 0 || slidernum == slidernuminview) return false;
 
             var start = function(){
-                stop();
-                autoplayid = setTimeout(function(){
-                    var next = 0;
-                    if(orientation == 'end'){
-                        next = currentindex + step;
-                        //非loop下，必须保证最后没有留有空白
-                        if(!loop && next > slidernum - slidernuminview && next < slidernum) next = slidernum - slidernuminview;
-                        //非loop下，保证能跳转到头部
-                        else if(!loop && next == slidernum) next = 0;
-                    }else if(orientation == 'start'){
-                        next = currentindex - step;
-                        //非loop下，必须保证第一个幻灯片必须显示
-                        if(!loop && next < 0 && next > - step)  next = 0;
-                        //非loop下，必须保证能跳转到尾部
-                        else if(!loop && next == - step)  next = slidernum - slidernuminview;
-                    }
-                    slide(next);
-                    start();
-                }, delay);
+                if(!playing){
+                    playing = true;
+                    autoplayid = setTimeout(function(){
+                        var next = 0;
+                        if(orientation == 'end'){
+                            next = currentindex + step;
+                            //非loop下，必须保证最后没有留有空白
+                            if(!loop && next > slidernum - slidernuminview && next < slidernum) next = slidernum - slidernuminview;
+                            //非loop下，保证能跳转到头部
+                            else if(!loop && next == slidernum) next = 0;
+                        }else if(orientation == 'start'){
+                            next = currentindex - step;
+                            //非loop下，必须保证第一个幻灯片必须显示
+                            if(!loop && next < 0 && next > - step)  next = 0;
+                            //非loop下，必须保证能跳转到尾部
+                            else if(!loop && next == - step)  next = slidernum - slidernuminview;
+                        }
+                        slide(next);
+                        playing = false;
+                        start();
+                    }, delay);
+                }
             };
 
             var stop = function(){
+                playing = false;
                 clearTimeout(autoplayid);
             };
 
