@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.2.2
+ * Carousel.js 2.2.3
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.2.2';
+    var version = '2.2.3';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -176,6 +176,7 @@
          * 滑动动画核心方法
          * @param index 幻灯片相对carouselscroll的索引
          * 同时实现无缝循环和不循环两种效果
+         * 增加10ms延迟，防止transitionDuration时间和setTimeout时间的差异
          */
         function slide(index){
 
@@ -235,7 +236,7 @@
 
                 //动画状态为false
                 in_transition = false; 
-            }, duration);
+            }, duration + 10);
         }
 
 
@@ -574,8 +575,12 @@
                     start();
                 });
             }, {passive: true});
-
-            //开始自动播放
+            //窗口非激活状态停止播放
+            document.addEventListener("visibilitychange", function(){
+                if(document.visibilityState == 'hidden') stop();
+                else if(document.visibilityState == 'visible') start();
+            });
+            //开始播放
             start();
         }
 
