@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Rapid Carousel</title>
+<style>
+* {margin:0;padding:0}
+img {
+    max-width:100%;
+}
+.carousel-box {
+    position: relative;
+}
+.carousel-indicator, .next, .previous {
+    position: absolute;
+    z-index: 10;
+}
+.next, .previous {
+    top: 50%;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    color: #fff;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,.6);
+    z-index: 10;
+    cursor: pointer;
+}
+.previous {
+    right: auto;
+    left: 0;
+}
+.carousel-indicator {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: 10px;
+}
+.carousel-indicator span {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 5px;
+    cursor: pointer;
+    background: rgba(255,255,255,.4);
+}
+.carousel-indicator span.active {
+    background: rgba(255,255,255,8);
+}
+.carousel-1 {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    margin: 50px auto;
+}
+.carousel-1 .carousel-scroll {
+    white-space: nowrap;
+    margin-top: 30px;
+}
+.carousel-1 a {
+    width: 100%;
+    display: inline-block;
+    background: #000;
+    text-align: center;
+}
+.carousel-2 {
+    width: 80%;
+    margin: 0 10%;
+    text-align: center;
+    margin: 50px auto;
+    overflow: hidden;
+}
+.carousel-2 .carousel-scroll {
+    white-space: nowrap;
+}
+.carousel-2 a {
+    width: 45%;
+    display: inline-block;
+    background: #000;
+    text-align: center;
+}
+
+.carousel-3 {
+    width: 80%;
+    margin: 0 10%;
+    text-align: center;
+    margin: 50px auto;
+    overflow: hidden;
+}
+.carousel-3 .carousel-scroll {
+    white-space: nowrap;
+}
+.carousel-3 a {
+    width: 50%;
+    display: inline-block;
+    background: #000;
+    text-align: center;
+}
+
+.carousel-4 {
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+    margin: 50px auto;
+    overflow: hidden;
+}
+.carousel-4 .carousel-scroll {
+    width: 100%;
+    height: 100vh;
+}
+.carousel-4 a {
+    width: 100%;
+    line-height: 100vh;
+    display: block;
+    background: #000;
+    text-align: center;
+}
+.carousel-4 img {
+    vertical-align: middle;
+}
+.carousel-4 .carousel-indicator {
+    top: 50%;
+    bottom: auto;
+    right: 20px;
+    width: 15px;
+    height: auto;
+    transform: translateY(-50%);
+}
+</style>
+<script async src="script/carousel.js"></script>
+</head>
+<body>
+    <div class="carousel-box carousel-1" carousel-container carousel-loop carousel-autoplay carousel-delay="3000" carousel-duration="300" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+            <a href="#"><img src="./images/6.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+    <div class="carousel-box carousel-1" carousel-container carousel-autoplay="start" carousel-loop carousel-delay="4000" carousel-duration="800" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+            <a href="#"><img src="./images/6.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+
+    <div class="carousel-box carousel-2" carousel-container carousel-delay="5000" carousel-duration="800" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+
+    <div class="carousel-box carousel-3" carousel-container carousel-autoplay carousel-duration="800" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+            <a href="#"><img src="./images/6.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+    <div class="carousel-box carousel-3" carousel-container carousel-autoplay carousel-duration="800" carousel-step="2" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+            <a href="#"><img src="./images/6.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+    <div class="carousel-box carousel-3" carousel-container carousel-autoplay carousel-duration="800" carousel-step="2" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+
+     <div class="carousel-box carousel-3" carousel-container carousel-autoplay carousel-loop carousel-duration="800" carousel-step="2" carousel-direction="x">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+        <div class="next" carousel-next-button>&gt;</div>
+        <div class="previous" carousel-prev-button>&lt;</div>
+    </div>
+
+    <div class="carousel-box carousel-4" carousel-container carousel-mousewheel carousel-delay="3000" carousel-duration="800" carousel-direction="y">
+        <div class="carousel-scroll" carousel-scroll>
+            <a href="#"><img src="./images/1.jpg"></a>
+            <a href="#"><img src="./images/2.jpg"></a>
+            <a href="#"><img src="./images/3.jpg"></a>
+            <a href="#"><img src="./images/4.jpg"></a>
+            <a href="#"><img src="./images/5.jpg"></a>
+            <a href="#"><img src="./images/6.jpg"></a>
+        </div>
+        <div class="carousel-indicator" carousel-indicator carousel-indicator-activeclass="active">
+        </div>
+    </div>
+</body>
+</html>

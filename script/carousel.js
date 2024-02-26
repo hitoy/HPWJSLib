@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.2.3
+ * Carousel.js 2.2.4
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,10 +31,13 @@
  */
 !function(w){
     'use strict';
-    var version = '2.2.3';
+    var version = '2.2.4';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
+        //阅读顺序是否从右到左
+        var text_dir = '';
+
         //是否动画中
         var in_transition = false;
 
@@ -61,6 +64,29 @@
 
 
         /*
+         * 判断对象书写方向
+         */
+        function is_rtl(){
+            if(text_dir && text_dir == 'rtl')
+                return true;
+            else if(text_dir != '')
+                return false;
+
+            var el = carouselscroll;
+            while(el){
+                if(el == document || el.dir){
+                    text_dir = el.dir;
+                    break;
+                }
+                el = el.parentNode;
+            }
+            if(!text_dir)
+                text_dir = 'ltr';
+            return text_dir == 'rtl';
+        }
+
+
+        /*
          * 根据方向和索引获取相对于carouselwrap的偏移量
          * @param index int carouselscroll中子元素索引
          * @return Float
@@ -69,10 +95,12 @@
             var carousel = carouselscroll.children;
             if(index >= carousel.length || index < 0) return false;
 
-            var slider = carousel[index];
-            var rect = slider.getBoundingClientRect();
+            var rect = carousel[index].getBoundingClientRect();
             var wraprect = carouselwrap.getBoundingClientRect();
+            var scrollrect = carouselscroll.getBoundingClientRect();
             if(direction == 'x'){
+                if(is_rtl())
+                    return wraprect.right - rect.right;
                 return rect.left - wraprect.left;
             }else{
                 return rect.top - wraprect.top;
@@ -90,7 +118,9 @@
             for(var i in Array.from(carouselscroll.children)){
                 var slider = carouselscroll.children[i];
                 var sliderdistance = direction == 'x' ? slider.getBoundingClientRect().width : slider.getBoundingClientRect().height;
+
                 var offset = getSliderDistance(i);
+                console.log(i, offset);
 
                 if(offset >= 0 &&  offset + sliderdistance <= distance){
                     count++;
@@ -163,8 +193,12 @@
             var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
             carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
             carouselscroll.style.transitionDelay = '0s';
+
             if(direction === 'x'){
-                carouselscroll.style.transform = 'translate3d('+transdis+'px,0,0)';
+                if(is_rtl())
+                    carouselscroll.style.transform = 'translate3d('+ -transdis + 'px,0,0)';
+                else
+                    carouselscroll.style.transform = 'translate3d('+ transdis + 'px,0,0)';
             }else{
                 carouselscroll.style.transform = 'translate3d(0,'+transdis+'px,0)';
             }
@@ -424,7 +458,10 @@
                 //设置看到默认为第一个幻灯片
                 var positionoffset = getSliderDistance(step) - firstslideroffset;
                 if(direction === 'x'){
-                    carouselscroll.style.left = - positionoffset + 'px';
+                    if(is_rtl())
+                        carouselscroll.style.right = - positionoffset + 'px';
+                    else
+                        carouselscroll.style.left =  - positionoffset + 'px';
                 }else{
                     carouselscroll.style.top = - positionoffset + 'px';
                 }
@@ -457,7 +494,10 @@
             var lastsliderrect = carouselscroll.lastElementChild.getBoundingClientRect();
             var carouselscrollrect = carouselscroll.getBoundingClientRect();
             if(direction === 'x'){
-                carouselscroll.style.width = lastsliderrect.right - carouselscrollrect.left + 'px';
+                if(is_rtl(carouselscroll))
+                    carouselscroll.style.width = carouselscrollrect.right - lastsliderrect.left + 'px';
+                else
+                    carouselscroll.style.width = lastsliderrect.right - carouselscrollrect.left + 'px';
                 carouselscroll.style.height = carouselscrollrect.height + 'px';
             }else{
                 carouselscroll.style.width = carouselscrollrect.width + 'px';
@@ -534,7 +574,7 @@
             if(slidernum == 0 || slidernum == slidernuminview) return false;
 
             var start = function(){
-                if(!playing){
+                if(!playing && carouselthreshold > 0.25){
                     playing = true;
                     autoplayid = setTimeout(function(){
                         var next = 0;
