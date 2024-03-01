@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.2.4
+ * Carousel.js 2.2.5
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.2.4';
+    var version = '2.2.5';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -120,8 +120,6 @@
                 var sliderdistance = direction == 'x' ? slider.getBoundingClientRect().width : slider.getBoundingClientRect().height;
 
                 var offset = getSliderDistance(i);
-                console.log(i, offset);
-
                 if(offset >= 0 &&  offset + sliderdistance <= distance){
                     count++;
                 }else if(offset >= distance){
@@ -190,17 +188,17 @@
         function move(index, duration){
             if(index < 0 || index >= carouselscroll.children.length) return false;
             var offset = getSliderDistance(index);
-            var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
+            if(is_rtl())
+                var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) + offset;
+            else
+                var transdis = parseFloat(carouselscroll.getAttribute('data-translate')) - offset;
             carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
             carouselscroll.style.transitionDelay = '0s';
 
             if(direction === 'x'){
-                if(is_rtl())
-                    carouselscroll.style.transform = 'translate3d('+ -transdis + 'px,0,0)';
-                else
-                    carouselscroll.style.transform = 'translate3d('+ transdis + 'px,0,0)';
+                carouselscroll.style.transform = 'translate3d(' + transdis + 'px,0,0)';
             }else{
-                carouselscroll.style.transform = 'translate3d(0,'+transdis+'px,0)';
+                carouselscroll.style.transform = 'translate3d(0,' + transdis + 'px,0)';
             }
             carouselscroll.setAttribute('data-translate', transdis);
         }
@@ -327,7 +325,7 @@
                     var movedis = y - initpageY;
                 }
 
-                if(movedis < 0){
+                if( ( is_rtl() && movedis > 0 ) || (!is_rtl() && movedis < 0) ){
                     for(var i = next; i < carouselscroll.children.length; i++){
                         if(getSliderDistance(i) > 0){
                             if(Math.abs(getSliderDistance(i - 1)) * 3 > carouselscroll.children[i - 1].offsetWidth){
@@ -336,8 +334,7 @@
                             break;
                         }
                     }
-                }
-                if(movedis > 0){
+                }else if( ( is_rtl() && movedis < 0 ) || (!is_rtl() && movedis > 0)){
                     for(var i = next; i >= 0; i--){
                         if(getSliderDistance(i) < 0 && (carouselscroll.children[i].offsetWidth + getSliderDistance(i)) * 3 > carouselscroll.children[i].offsetWidth){
                                 next = i;
@@ -345,6 +342,7 @@
                         }
                     }
                 }
+
 
                 //非loop下，必须保证最后没有空白
                 if(!loop && next > slidernum - slidernuminview) next = slidernum - slidernuminview;
