@@ -289,6 +289,7 @@
             var initpageY = 0;
             var pageX = 0;
             var pageY = 0;
+            var freeze = false;
 
             //绑定拖拽事件
             carouselscroll.addEventListener('touchstart', function(ev){
@@ -303,20 +304,33 @@
                 var translate = parseFloat(carouselscroll.getAttribute('data-translate'));
                 carouselscroll.style.transitionDuration = '0s';
                 carouselscroll.style.transitionDelay  = '0s';
-                if(direction == 'x'){
+
+
+                var movedisx = Math.abs(x - initpageX);
+                var movedisy = Math.abs(y - initpageY);
+
+                //第一次移动的方向，来判断滚动是否冻结，冻结的情况下无法移动元素
+                if((direction == 'x' && movedisx < movedisy) || (direction == 'y' &&  movedisx > movedisy)){
+                    freeze = true;
+                }
+
+                if(direction == 'x' && !freeze){
                     var movedis = x - pageX;
                     var transdis = translate + movedis;
                     carouselscroll.style.transform = 'translateX('+transdis+'px)';
                     carouselscroll.setAttribute('data-translate', transdis);
-                }else{
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                }else if(direction == 'y' && !freeze){
                     var movedis = y - pageY;
                     var transdis = translate + movedis;
                     carouselscroll.style.transform = 'translateY('+transdis+'px)';
                     carouselscroll.setAttribute('data-translate', transdis);
+                    ev.stopPropagation();
+                    ev.preventDefault();
                 }
                 pageX = x;
                 pageY = y;
-                ev.preventDefault();
             }, {passive: false});
             carouselscroll.addEventListener('touchend', function(ev){
                 var x = ev.changedTouches[0].pageX;
@@ -352,6 +366,7 @@
                 if(!loop && next > slidernum - slidernuminview) next = slidernum - slidernuminview;
 
                 slide(next);
+                freeze = false;
             }, {passive: true});
         }
 
