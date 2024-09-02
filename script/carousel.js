@@ -1,5 +1,5 @@
 /*
- * Carousel.js 2.2.5
+ * Carousel.js 3.0.0
  * Copyright Hito (vip@hitoy.org) All rights reserved
  *
  *
@@ -31,7 +31,7 @@
  */
 !function(w){
     'use strict';
-    var version = '2.2.5';
+    var version = '3.0.0';
 
     //轮播构造对象
     function Carousel(carouselscroll, duration, delay, loop, step, direction, mousewheel, indicator, nextbutton, previousbutton, carouselscrollactiveclass, activeclass){
@@ -61,6 +61,9 @@
 
         //对象可视阈值
         var carouselthreshold = 0;
+
+        //是否已经加载
+        var loaded = false;
 
 
         /*
@@ -195,7 +198,7 @@
             carouselscroll.style.transitionDuration = parseFloat(duration/1000) + 's';
             carouselscroll.style.transitionDelay = '0s';
 
-            if(direction === 'x'){
+            if(direction == 'x'){
                 carouselscroll.style.transform = 'translate3d(' + transdis + 'px,0,0)';
             }else{
                 carouselscroll.style.transform = 'translate3d(0,' + transdis + 'px,0)';
@@ -313,7 +316,8 @@
                 }
                 pageX = x;
                 pageY = y;
-            }, {passive: true});
+                ev.preventDefault();
+            }, {passive: false});
             carouselscroll.addEventListener('touchend', function(ev){
                 var x = ev.changedTouches[0].pageX;
                 var y = ev.changedTouches[0].pageY;
@@ -421,7 +425,7 @@
             }
 
              //计算每次滑动的元素个数
-            if(step === 'auto'){
+            if(step == 'auto'){
                 step = slidernuminview;
             }else{
                 step = Math.min(step, slidernuminview);
@@ -455,7 +459,7 @@
 
                 //设置看到默认为第一个幻灯片
                 var positionoffset = getSliderDistance(step) - firstslideroffset;
-                if(direction === 'x'){
+                if(direction == 'x'){
                     if(is_rtl())
                         carouselscroll.style.right = - positionoffset + 'px';
                     else
@@ -491,8 +495,8 @@
             //2. 计算整个滚动容器的尺寸
             var lastsliderrect = carouselscroll.lastElementChild.getBoundingClientRect();
             var carouselscrollrect = carouselscroll.getBoundingClientRect();
-            if(direction === 'x'){
-                if(is_rtl(carouselscroll))
+            if(direction == 'x'){
+                if(is_rtl())
                     carouselscroll.style.width = carouselscrollrect.right - lastsliderrect.left + 'px';
                 else
                     carouselscroll.style.width = lastsliderrect.right - carouselscrollrect.left + 'px';
@@ -556,11 +560,56 @@
             //6. 鼠标滚动控制
             if(mousewheel)
                 attachWheelHandle();
+
+            loaded = true;
         };
 
         //初始化
         __init();
 
+
+        /*
+         * 重新渲染，通常发生在页面大小发生变化时
+         */
+        this.Rerender = function(){
+            if(!loaded) return false;
+
+            //清除carouselwrap的原有尺寸
+            carouselwrap.style.width = '';
+            carouselwrap.style.height = '';
+
+            //清除carouselscroll及其子元素的原有尺寸
+            carouselscroll.style.width = '';
+            carouselscroll.style.height = '';
+            carouselscroll.childNodes.forEach(function(node, i){
+                node.style.width = '';
+                node.style.height = '';
+             });
+
+            //添加carouselwrap的尺寸
+            var carouselscrollrect = carouselscroll.getBoundingClientRect();
+            carouselwrap.style.width =  carouselscrollrect.width + 'px';
+            carouselwrap.style.height =  carouselscrollrect.height + 'px';
+
+            //添加carouselscroll及其子元素的尺寸
+            carouselscroll.childNodes.forEach(function(node, i){
+                var rect = node.getBoundingClientRect();
+                node.style.width = rect.width + 'px';
+                node.style.height = rect.height + 'px';
+            });
+            var lastsliderrect = carouselscroll.lastElementChild.getBoundingClientRect();
+            var carouselscrollrect = carouselscroll.getBoundingClientRect();
+            if(direction == 'x'){
+                if(is_rtl())
+                    carouselscroll.style.width = carouselscrollrect.right - lastsliderrect.left + 'px';
+                else
+                    carouselscroll.style.width = lastsliderrect.right - carouselscrollrect.left + 'px';
+                carouselscroll.style.height = carouselscrollrect.height + 'px';
+            }else{
+                carouselscroll.style.width = carouselscrollrect.width + 'px';
+                carouselscroll.style.height = lastsliderrect.bottom - carouselscrollrect.top + 'px';
+            }
+        }
 
         /*
          * 自动播放轮播动画
@@ -614,9 +663,9 @@
                 });
             }, {passive: true});
             //窗口非激活状态停止播放
-            document.addEventListener("visibilitychange", function(){
-                if(document.visibilityState == 'hidden') stop();
-                else if(document.visibilityState == 'visible') start();
+            document.addEventListener('visibilitychange', function(){
+                if(document.visibilityState == 'visible') start();
+                else if(document.visibilityState == 'hidden') stop();
             });
             //开始播放
             start();
@@ -633,12 +682,12 @@
     }
 
     //解析DOM，开始工作
-    function carouselParser(){
+    function parseCarousel(){
 
         //页面中所有的轮播对象
         var carousels = {};
 
-        //创建一个全局交叉观察器以观察轮播DOM在视口的位置变化情况
+        //观察轮播器在视口中的变化，以控制播放逻辑
         if(w.IntersectionObserver){
             var carouselwrapobserver = new IntersectionObserver(function(entries){
                 entries.forEach(function(entry){
@@ -651,6 +700,13 @@
                 threshold: [0, 0.25, 0.5, 0.75, 1]
             });
         }
+        //当窗口大小发生变化时，重新渲染
+        window.addEventListener('resize', function(){
+            for(var index in carousels){
+                if(carousels[index])
+                    carousels[index].Rerender();
+            }
+        });
 
         //查询页面中所有的轮播要求，并解析
         var items = w.document.querySelectorAll('[carousel-container]');
@@ -682,7 +738,7 @@
             //初始化classname
             el.classList.add('carousel-container');
             carouselscroll.classList.add('carousel-scroll');
-            if(direction === 'x'){
+            if(direction == 'x'){
                 carouselscroll.classList.add('carousel-scroll-x');
             }else{
                 carouselscroll.classList.add('carousel-scroll-y');
@@ -718,9 +774,9 @@
 
 
     //创建全局样式
-    function attachGlobaStyles(){
+    function attachCarouselStyle(){
         var nestedstyle = w.document.createElement('style');
-        nestedstyle.setAttribute('carousel-extension', version);
+        nestedstyle.setAttribute('runtime-style', 'carouseljs-' + version);
         nestedstyle.innerHTML=`
         [carousel-container] {
             position: relative;
@@ -765,13 +821,13 @@
 
     //第一次加载时执行初始化函数
     var readyState = w.document.readyState;
-    if(readyState === "complete"){
-        attachGlobaStyles();
-        carouselParser();
+    if(readyState == "complete"){
+        attachCarouselStyle();
+        parseCarousel();
     }else{
         w.addEventListener("load", function(){
-            attachGlobaStyles();
-            carouselParser();
+            attachCarouselStyle();
+            parseCarousel();
         });
     }
 }(window);
